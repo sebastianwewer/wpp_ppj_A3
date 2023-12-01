@@ -1,5 +1,6 @@
 package solution;
 
 public enum Direction {
-    CLOCKWISE,COUNTERCCLOCKWISE;
+    CLOCKWISE,COUNTERCLOCKWISE,ANY;
+
 }

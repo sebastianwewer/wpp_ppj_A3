@@ -2,6 +2,8 @@ package solution;
 
 import _untouchable_.shipPart5.Ship_A;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -12,28 +14,31 @@ public class Ship extends Ship_A implements Runnable {
     private Direction direction;
     private final int maximumNumberOfSmurfs;
     private int currentNumberOfSmurfs;
-    private Landing[] landings;
+    private final List<Landing> landings;
+    private Landing currentLanding;
     private int position;
     private int nextPosition;
 
     // Synchronisierung
     Lock shipMutex;
-    Condition[] exitConditions;
+    List<Condition> exitConditions;
 
-    public Ship(int id, Direction direction, int maximumNumberOfSmurfs, Landing[] landings, int position) {
+    public Ship(int id, Direction direction, int maximumNumberOfSmurfs, List<Landing> landings, int position) {
         this.id = id;
         this.direction = direction;
         this.maximumNumberOfSmurfs = maximumNumberOfSmurfs;
         this.currentNumberOfSmurfs = 0;
         this.landings = landings;
+        this.currentLanding = landings.get(position);
         this.position = position;
+
         setNextPosition();
 
         this.shipMutex = new ReentrantLock();
-        this.exitConditions = new Condition[landings.length];
+        this.exitConditions = new ArrayList<>();
 
-        for (int i = 0; i < landings.length; i++) {
-            exitConditions[i] = shipMutex.newCondition();
+        for (int i = 0; i < landings.size(); i++) {
+            exitConditions.add(shipMutex.newCondition());
         }
     }
 
@@ -44,7 +49,7 @@ public class Ship extends Ship_A implements Runnable {
 
     @Override
     public boolean getDebugState() {
-        return false;
+        return TestFrame.DEBUG_STATE;
     }
 
     @Override
@@ -57,14 +62,22 @@ public class Ship extends Ship_A implements Runnable {
         while (running) {
 
         }
+    }
 
+    private void signalPassengers() {
+        shipMutex.lock();
+        try {
+            exitConditions.get(position).signalAll();
+        } finally {
+            shipMutex.unlock();
+        }
     }
 
     private void setNextPosition() {
         if (direction.equals(Direction.CLOCKWISE)) {
-            this.nextPosition = (position + 1) % landings.length;
+            this.nextPosition = (position + 1) % landings.size();
         } else {
-            this.nextPosition = ((position - 1) + landings.length) % landings.length;
+            this.nextPosition = ((position - 1) + landings.size()) % landings.size();
         }
     }
 
@@ -92,7 +105,12 @@ public class Ship extends Ship_A implements Runnable {
     }
 
     private void dockAtLanding(Landing landing) {
-        landing.dock();
+        landing.dock(this);
+        currentLanding = landing;
+    }
+
+    private void undockAtLanding(Landing landing) {
+        landing.dock(this);
     }
 
     public Lock getShipMutex() {
@@ -100,7 +118,7 @@ public class Ship extends Ship_A implements Runnable {
     }
 
     public Condition getExitCondition(int landing) {
-        return exitConditions[landing];
+        return exitConditions.get(landing);
     }
 
 
