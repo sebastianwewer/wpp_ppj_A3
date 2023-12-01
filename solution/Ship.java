@@ -18,6 +18,7 @@ public class Ship extends Ship_A implements Runnable {
     private Landing currentLanding;
     private int position;
     private int nextPosition;
+    private boolean running;
 
     // Synchronisierung
     Lock shipMutex;
@@ -40,6 +41,7 @@ public class Ship extends Ship_A implements Runnable {
         for (int i = 0; i < landings.size(); i++) {
             exitConditions.add(shipMutex.newCondition());
         }
+        this.running = true;
     }
 
     @Override
@@ -54,13 +56,53 @@ public class Ship extends Ship_A implements Runnable {
 
     @Override
     public void terminate() {
-
+        running = false;
     }
 
     @Override
     public void run() {
         while (running) {
+            setNextPosition();
 
+            currentLanding.getLandingMutex().lock();
+            try {
+                currentLanding.dock(this);
+                dockAt(position);
+            } finally {
+                currentLanding.getLandingMutex().unlock();
+            }
+
+            signalPassengers();
+
+            currentLanding.getLandingMutex().lock();
+            try {
+                currentLanding.signalWaitingSmurfs(direction);
+            }finally {
+                currentLanding.getLandingMutex().unlock();
+            }
+
+            try {
+                takeTimeForBoardingAt(position);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+            currentLanding.getLandingMutex().lock();
+            try {
+                currentLanding.undock(this);
+                castOff(position);
+            }finally {
+                currentLanding.getLandingMutex().unlock();
+            }
+
+            try {
+                takeTimeForSailingTo(nextPosition);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+            position = nextPosition;
+            currentLanding = landings.get(position);
         }
     }
 

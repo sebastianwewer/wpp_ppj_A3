@@ -20,7 +20,12 @@ public class Landing {
 
     public Landing(int capacity) {
         this.docked = new ArrayList<>();
-        this.waitingQueue = new Semaphore(2, true);
+        this.waitingQueue = new Semaphore(capacity, true);
+
+        this.landingMutex = new ReentrantLock();
+        this.travelCWCondition = landingMutex.newCondition();
+        this.travelCCWCondition = landingMutex.newCondition();
+        this.travelANYCondition = landingMutex.newCondition();
     }
 
     public void dock(Ship ship) {
