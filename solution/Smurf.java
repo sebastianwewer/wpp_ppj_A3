@@ -54,6 +54,8 @@ public class Smurf extends Smurf_A implements Runnable {
                         waitForShip(direction);
                         optionalShip = currentLanding.getShip(direction);
                     }
+                    currentShip = optionalShip.get();
+                    enter(currentShip);
                 } finally {
                     currentLanding.getLandingMutex().unlock();
                     //System.err.println("Smurf " + identify() + " hat Landing " + position + " unlocked! Enter Ship");
@@ -65,18 +67,19 @@ public class Smurf extends Smurf_A implements Runnable {
                 currentLanding = landings.get(nextPosition);
                 position = nextPosition;
 
-                try {
-                    currentLanding.getLandingMutex().lock();
-                    //System.err.println("Smurf " + identify() + " hat Landing " + nextPosition + " gelocked! Exit Ship");
-                    currentShip.exitShip();
-//                    currentLanding.signalWaitingSmurfs(currentShip.getDirection());
-                } finally {
-                    currentLanding.getLandingMutex().unlock();
-                    //System.err.println("Smurf " + identify() + " hat Landing " + nextPosition + " gelocked! Exited Ship");
-                }
-
+                currentShip.getSeats().release();
                 // TODO Schäfers-Methode aufrufen bevor wir selbst das Schiff verlassen haben?
                 leave(currentShip);
+
+//                try {
+//                    currentLanding.getLandingMutex().lock();
+                    //System.err.println("Smurf " + identify() + " hat Landing " + nextPosition + " gelocked! Exit Ship");
+//                    currentShip.exitShip();
+//                    currentLanding.signalWaitingSmurfs(currentShip.getDirection());
+//                } finally {
+//                    currentLanding.getLandingMutex().unlock();
+                    //System.err.println("Smurf " + identify() + " hat Landing " + nextPosition + " gelocked! Exited Ship");
+//                }
 
                 takeTimeForDoingStuffAtCurrentPosition(position, ssi);
             }
@@ -88,9 +91,8 @@ public class Smurf extends Smurf_A implements Runnable {
     }
 
     private void waitForArrival() {
-
         try {
-            currentShip.shipMutex.lock();
+            currentShip.getShipMutex().lock();
 //           System.err.println("Smurf " + identify() + " hat Schiff " + currentShip.identify() + " gelocked. Wait for arrival");
 //            System.err.println("Smurf " + identify() + " wartet auf Exit Condition von Schiff " + currentShip.identify());
             currentShip.getExitCondition(nextPosition).await();
@@ -98,7 +100,7 @@ public class Smurf extends Smurf_A implements Runnable {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } finally {
-            currentShip.shipMutex.unlock();
+            currentShip.getShipMutex().unlock();
 //            System.err.println("Smurf " + identify() + " hat Schiff " + currentShip.identify() + " unlocked. After Wait for arrival");
         }
     }
@@ -129,17 +131,21 @@ public class Smurf extends Smurf_A implements Runnable {
     private boolean tryEnterShip(Optional<Ship> optionalShip) {
         if (optionalShip.isPresent()) {
             Ship ship = optionalShip.get();
-            try {
-                ship.shipMutex.lock();
-                if (!ship.isFull()) {
-                    ship.enterShip();
-                    currentShip = ship;
-                    enter(ship);
-                    return true;
-                }
-            } finally {
-                ship.shipMutex.unlock();
-            }
+
+            return ship.getSeats().tryAcquire();
+
+
+//            try {
+//                ship.getShipMutex().lock();
+//                if (!ship.isFull()) {
+//                    ship.enterShip();
+//                    currentShip = ship;
+//                    enter(ship);
+//                    return true;
+//                }
+//            } finally {
+//                ship.getShipMutex().unlock();
+//            }
         }
 
         return false;

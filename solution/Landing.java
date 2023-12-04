@@ -58,8 +58,10 @@ public class Landing {
             return Optional.empty();
         }
         return switch (direction) {
-            case ANY -> docked.stream().filter((ship -> !ship.isFull())).findAny();
-            default -> docked.stream().filter((ship -> ship.getDirection().equals(direction) && !ship.isFull())).findAny();
+//            case ANY -> docked.stream().filter((ship -> !ship.isFull())).findAny();
+            case ANY -> docked.stream().findAny();
+//            default -> docked.stream().filter((ship -> ship.getDirection().equals(direction) && !ship.isFull())).findAny();
+            default -> docked.stream().filter((ship -> ship.getDirection().equals(direction))).findAny();
         };
     }
 

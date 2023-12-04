@@ -4,6 +4,7 @@ import _untouchable_.shipPart5.Ship_A;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -13,7 +14,7 @@ public class Ship extends Ship_A implements Runnable {
     private final int id;
     private Direction direction;
     private final int maximumNumberOfSmurfs;
-    private int currentNumberOfSmurfs;
+
     private final List<Landing> landings;
     private Landing currentLanding;
     private int position;
@@ -21,14 +22,15 @@ public class Ship extends Ship_A implements Runnable {
     private boolean running;
 
     // Synchronisierung
-    Lock shipMutex;
-    List<Condition> exitConditions;
+    private final Lock shipMutex;
+    private final List<Condition> exitConditions;
+    private final Semaphore seats;
 
     public Ship(int id, Direction direction, int maximumNumberOfSmurfs, List<Landing> landings, int position) {
         this.id = id;
         this.direction = direction;
         this.maximumNumberOfSmurfs = maximumNumberOfSmurfs;
-        this.currentNumberOfSmurfs = 0;
+        this.seats = new Semaphore(maximumNumberOfSmurfs);
         this.landings = landings;
         this.currentLanding = landings.get(position);
         this.position = position;
@@ -132,19 +134,19 @@ public class Ship extends Ship_A implements Runnable {
         }
     }
 
-    public boolean isFull() {
-        return currentNumberOfSmurfs == maximumNumberOfSmurfs;
-    }
+//    public boolean isFull() {
+//        return currentNumberOfSmurfs == maximumNumberOfSmurfs;
+//    }
 
-    public void enterShip() {
-        currentNumberOfSmurfs++;
-        //System.err.println("Smurf entered Ship " + identify() + ": " + currentNumberOfSmurfs + "/" + maximumNumberOfSmurfs);
-    }
+//    public void enterShip() {
+//        currentNumberOfSmurfs++;
+//        //System.err.println("Smurf entered Ship " + identify() + ": " + currentNumberOfSmurfs + "/" + maximumNumberOfSmurfs);
+//    }
 
-    public void exitShip() {
-        currentNumberOfSmurfs--;
-        //System.err.println("Smurf exited Ship " + identify() + ": " + currentNumberOfSmurfs + "/" + maximumNumberOfSmurfs);
-    }
+//    public void exitShip() {
+//        currentNumberOfSmurfs--;
+//        //System.err.println("Smurf exited Ship " + identify() + ": " + currentNumberOfSmurfs + "/" + maximumNumberOfSmurfs);
+//    }
 
 
     // Getter and Setter
@@ -174,5 +176,7 @@ public class Ship extends Ship_A implements Runnable {
         return exitConditions.get(landing);
     }
 
-
+    public Semaphore getSeats() {
+        return seats;
+    }
 }
