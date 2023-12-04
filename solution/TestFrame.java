@@ -17,7 +17,7 @@ public class TestFrame extends TestAndEnvironment_A {
 
     @Override
     public Integer getWantedNumberOfSmurfs() {
-        return 10000;
+        return 1;
     }
 
     @Override
@@ -58,7 +58,7 @@ public class TestFrame extends TestAndEnvironment_A {
         //Ships
         for (int i = 0; i < getWantedNumberOfShips(); i++) {
             int position = i;
-            Ship ship = new Ship(i, (Math.random() < 0.5) ? Direction.CLOCKWISE : Direction.COUNTERCLOCKWISE, 10, landings, position);
+            Ship ship = new Ship(i, i % 2 == 0 ? Direction.CLOCKWISE : Direction.COUNTERCLOCKWISE, getWantedMaximumNumberOfSmurfsPerShip(), landings, position);
             ships.add(ship);
             Thread shipThread = new Thread(ship);
             shipThread.setName("Ship " + i);

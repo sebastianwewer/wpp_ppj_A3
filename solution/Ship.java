@@ -64,22 +64,30 @@ public class Ship extends Ship_A implements Runnable {
         while (running) {
             setNextPosition();
 
-            currentLanding.getLandingMutex().lock();
-            try {
-                currentLanding.dock(this);
-                dockAt(position);
-            } finally {
-                currentLanding.getLandingMutex().unlock();
-            }
+//            try {
+//                currentLanding.getLandingMutex().lock();
+//                System.err.println("Schiff "+identify()+" hat Landing "+position+" gelocked! Docking");
+//                currentLanding.dock(this);
+//                dockAt(position);
+//            } finally {
+//                currentLanding.getLandingMutex().unlock();
+//                System.err.println("Schiff "+identify()+" hat Landing "+position+" unlocked! Docked successfully");
+//            }
 
+            currentLanding.dock(this);
+            dockAt(position);
             signalPassengers();
 
-            currentLanding.getLandingMutex().lock();
             try {
+                currentLanding.getLandingMutex().lock();
+                //System.err.println("Schiff " + identify() + " hat Landing " + position + " gelocked! Signal Waiting");
                 currentLanding.signalWaitingSmurfs(direction);
-            }finally {
+            } finally {
                 currentLanding.getLandingMutex().unlock();
+                //System.err.println("Schiff " + identify() + " hat Landing " + position + " unlocked! Signal Waiting");
             }
+
+
 
             try {
                 takeTimeForBoardingAt(position);
@@ -87,12 +95,15 @@ public class Ship extends Ship_A implements Runnable {
                 throw new RuntimeException(e);
             }
 
-            currentLanding.getLandingMutex().lock();
+
             try {
+                currentLanding.getLandingMutex().lock();
+                //System.err.println("Schiff " + identify() + " hat Landing " + position + " gelocked! Undocking");
                 currentLanding.undock(this);
                 castOff(position);
-            }finally {
+            } finally {
                 currentLanding.getLandingMutex().unlock();
+                //System.err.println("Schiff " + identify() + " hat Landing " + position + " unlocked! Undocking");
             }
 
             try {
@@ -104,6 +115,7 @@ public class Ship extends Ship_A implements Runnable {
             position = nextPosition;
             currentLanding = landings.get(position);
         }
+        lastDeed();
     }
 
     private void signalPassengers() {
@@ -129,10 +141,12 @@ public class Ship extends Ship_A implements Runnable {
 
     public void enterShip() {
         currentNumberOfSmurfs++;
+        //System.err.println("Smurf entered Ship " + identify() + ": " + currentNumberOfSmurfs + "/" + maximumNumberOfSmurfs);
     }
 
     public void exitShip() {
         currentNumberOfSmurfs--;
+        //System.err.println("Smurf exited Ship " + identify() + ": " + currentNumberOfSmurfs + "/" + maximumNumberOfSmurfs);
     }
 
 
