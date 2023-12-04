@@ -54,6 +54,9 @@ public class Landing {
 
     public Optional<Ship> getShip(Direction direction) {
         // TODO Ist es Threadsafe auf isFull() zu prüfen, ohne das Schiff vorher zu locken?
+        if(docked.isEmpty()) {
+            return Optional.empty();
+        }
         return switch (direction) {
             case ANY -> docked.stream().filter((ship -> !ship.isFull())).findAny();
             default -> docked.stream().filter((ship -> ship.getDirection().equals(direction) && !ship.isFull())).findAny();

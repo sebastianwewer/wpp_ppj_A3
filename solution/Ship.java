@@ -62,6 +62,7 @@ public class Ship extends Ship_A implements Runnable {
     @Override
     public void run() {
         while (running) {
+            currentLanding = landings.get(position);
             setNextPosition();
 
 //            try {
@@ -87,14 +88,11 @@ public class Ship extends Ship_A implements Runnable {
                 //System.err.println("Schiff " + identify() + " hat Landing " + position + " unlocked! Signal Waiting");
             }
 
-
-
             try {
                 takeTimeForBoardingAt(position);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-
 
             try {
                 currentLanding.getLandingMutex().lock();
@@ -113,7 +111,6 @@ public class Ship extends Ship_A implements Runnable {
             }
 
             position = nextPosition;
-            currentLanding = landings.get(position);
         }
         lastDeed();
     }
