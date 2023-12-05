@@ -47,7 +47,7 @@ public class TestFrame extends TestAndEnvironment_A {
         List<Thread> shipThreads = new ArrayList<>();
         List<Ship> ships = new ArrayList<>();
         List<Landing> landings = new ArrayList<>();
-        CountDownLatch cdl = new CountDownLatch(getWantedNumberOfShips());
+        CountDownLatch cdl = new CountDownLatch(1);
 
         //Landings
         for (int i = 0; i < getWantedNumberOfLandings(); i++) {
@@ -58,13 +58,15 @@ public class TestFrame extends TestAndEnvironment_A {
         //Ships
         for (int i = 0; i < getWantedNumberOfShips(); i++) {
             int position = i;
-            Ship ship = new Ship(i, i % 2 == 0 ? Direction.CLOCKWISE : Direction.COUNTERCLOCKWISE, getWantedMaximumNumberOfSmurfsPerShip(), landings, position);
+            Ship ship = new Ship(i, i % 2 == 0 ? Direction.CLOCKWISE : Direction.COUNTERCLOCKWISE, getWantedMaximumNumberOfSmurfsPerShip(), landings, position,cdl);
             ships.add(ship);
             Thread shipThread = new Thread(ship);
             shipThread.setName("Ship " + i);
             shipThreads.add(shipThread);
             shipThread.start();
         }
+
+        cdl.countDown();
 
         //Smurfs
         for (int i = 0; i < requestedNumberOfSmurfs; i++) {

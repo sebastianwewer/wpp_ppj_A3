@@ -1,26 +1,30 @@
 package solution;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Landing {
 
-    private final Set<Ship> docked;
+    private final List<Ship> dockedAny;
+    private final List<Ship> dockedCW;
+    private final List<Ship> dockedCCW;
+    private final int capacity;
+    private int currentlyDocked;
 
-    // Synchronisierung
     private final ReentrantLock landingMutex;
     private final Condition travelCCWCondition;
     private final Condition travelCWCondition;
     private final Condition travelANYCondition;
     private final Condition fullCondition;
-    private final int capacity;
 
     public Landing(int capacity) {
 
-        this.docked = new HashSet<>();
+        this.dockedAny = new ArrayList<>();
+        this.dockedCW = new ArrayList<>();
+        this.dockedCCW = new ArrayList<>();
 
         this.landingMutex = new ReentrantLock();
         this.travelCWCondition = landingMutex.newCondition();
@@ -28,36 +32,51 @@ public class Landing {
         this.travelANYCondition = landingMutex.newCondition();
         this.fullCondition = landingMutex.newCondition();
         this.capacity = capacity;
+        this.currentlyDocked = 0;
     }
 
     public Condition getLandingFullCondition() {
-    	return fullCondition;
+        return fullCondition;
     }
 
     public boolean dock(Ship ship) {
-            if(docked.size()>= capacity) {
-            	return false;
-            } 
-            docked.add(ship);
-            return true;
+        if (currentlyDocked >= capacity) {
+            return false;
+        }
+
+        Direction direction = ship.getDirection();
+        dockedAny.add(ship);
+        if (direction.equals(Direction.CLOCKWISE)) {
+            dockedCW.add(ship);
+        } else {
+            dockedCCW.add(ship);
+        }
+        currentlyDocked++;
+        return true;
     }
 
     public void undock(Ship ship) {
-        docked.remove(ship);
+        Direction direction = ship.getDirection();
+        dockedAny.remove(ship);
+        if (direction.equals(Direction.CLOCKWISE)) {
+            dockedCW.remove(ship);
+        } else {
+            dockedCCW.remove(ship);
+        }
+        currentlyDocked--;
     }
 
     public ReentrantLock getLandingMutex() {
         return landingMutex;
     }
 
-    public Optional<Ship> getShip(Direction direction) {
-        // TODO Ist es Threadsafe auf isFull() zu prüfen, ohne das Schiff vorher zu locken?
-        if(docked.isEmpty()) {
-            return Optional.empty();
+    public List<Ship> getShips(Direction direction) {
+        if (currentlyDocked == 0) {
+            return new ArrayList<>();
         }
         return switch (direction) {
-            case ANY -> docked.stream().findAny();
-            default -> docked.stream().filter((ship -> ship.getDirection().equals(direction))).findAny();
+            case ANY -> dockedAny;
+            default -> direction.equals(Direction.CLOCKWISE) ? dockedCW : dockedCCW;
         };
     }
 

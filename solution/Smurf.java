@@ -34,8 +34,6 @@ public class Smurf extends Smurf_A implements Runnable {
     @Override
     public void run() {
         try {
-            Optional<Ship> optionalShip;
-
             SSI ssi = schedule.next();
             position = ssi.getPlanedPosition();
 
@@ -48,12 +46,9 @@ public class Smurf extends Smurf_A implements Runnable {
 
                 try {
                     currentLanding.getLandingMutex().lock();
-                    optionalShip = currentLanding.getShip(direction);
-                    while (!tryEnterShip(optionalShip)) {
+                    while (!tryEnterShip()) {
                         waitForShip(direction);
-                        optionalShip = currentLanding.getShip(direction);
                     }
-                    currentShip = optionalShip.get();
                     enter(currentShip);
                 } finally {
                     currentLanding.getLandingMutex().unlock();
@@ -62,7 +57,6 @@ public class Smurf extends Smurf_A implements Runnable {
 
                 waitForArrival();
 
-              //currentLanding = landings.get(nextPosition);
                 position = nextPosition;
 
                 try {
@@ -71,13 +65,12 @@ public class Smurf extends Smurf_A implements Runnable {
                 } finally {
                     currentShip.getShipMutex().unlock();
                 }
-                // TODO Schäfers-Methode aufrufen bevor wir selbst das Schiff verlassen haben?
                 leave(currentShip);
 
                 takeTimeForDoingStuffAtCurrentPosition(position, ssi);
             }
             lastDeed();
-            
+
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -115,12 +108,15 @@ public class Smurf extends Smurf_A implements Runnable {
         }
     }
 
-    private boolean tryEnterShip(Optional<Ship> optionalShip) {
-        if (optionalShip.isPresent()) {
-            Ship ship = optionalShip.get();
-            return ship.enterShip();
-        }
+    private boolean tryEnterShip() {
+        List<Ship> ships = currentLanding.getShips(direction);
 
+        for (Ship ship : ships) {
+            if (ship.enterShip()) {
+                currentShip = ship;
+                return true;
+            }
+        }
         return false;
     }
 }

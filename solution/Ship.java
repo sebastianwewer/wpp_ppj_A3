@@ -4,7 +4,7 @@ import _untouchable_.shipPart5.Ship_A;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -23,10 +23,11 @@ public class Ship extends Ship_A implements Runnable {
     private boolean running;
 
     // Synchronisierung
+    private final CountDownLatch cdl;
     private final Lock shipMutex;
     private final List<Condition> exitConditions;
 
-    public Ship(int id, Direction direction, int maximumNumberOfSmurfs, List<Landing> landings, int position) {
+    public Ship(int id, Direction direction, int maximumNumberOfSmurfs, List<Landing> landings, int position, CountDownLatch cdl) {
         this.id = id;
         this.direction = direction;
         this.maximumNumberOfSmurfs = maximumNumberOfSmurfs;
@@ -34,6 +35,7 @@ public class Ship extends Ship_A implements Runnable {
         this.landings = landings;
         this.currentLanding = landings.get(position);
         this.position = position;
+        this.cdl = cdl;
 
         setNextPosition();
 
@@ -60,33 +62,29 @@ public class Ship extends Ship_A implements Runnable {
     public void terminate() {
         running = false;
     }
-    
-    public void tryEnterLanding(Landing landing) {
-    	while(!landing.dock(this)) {
-    		try{
-    			landing.getLandingFullCondition().await();
-    		} catch (InterruptedException e) {
-    			throw new RuntimeException(e);
-    		}
-		}					
-    	
-    }
 
     @Override
     public void run() {
+
+        try {
+            cdl.await();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
         while (running) {
             currentLanding = landings.get(position);
             setNextPosition();
-            
+
             try {
-            currentLanding.getLandingMutex().lock();
-            tryEnterLanding(currentLanding);
-            dockAt(position);
-            }finally {
+                currentLanding.getLandingMutex().lock();
+                tryEnterLanding(currentLanding);
+                dockAt(position);
+            } finally {
                 currentLanding.getLandingMutex().unlock();
             }
-            
-            
+
+
             signalPassengers();
 
             try {
@@ -107,7 +105,7 @@ public class Ship extends Ship_A implements Runnable {
                 currentLanding.undock(this);
                 currentLanding.getLandingFullCondition().signalAll();
                 castOff(position);
-                
+
             } finally {
                 currentLanding.getLandingMutex().unlock();
             }
@@ -121,6 +119,16 @@ public class Ship extends Ship_A implements Runnable {
             position = nextPosition;
         }
         lastDeed();
+    }
+
+    public void tryEnterLanding(Landing landing) {
+        while (!landing.dock(this)) {
+            try {
+                landing.getLandingFullCondition().await();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     private void signalPassengers() {
@@ -140,15 +148,15 @@ public class Ship extends Ship_A implements Runnable {
         }
     }
 
-    public boolean enterShip(){
-        if(currentNumberOfSmurfs>=maximumNumberOfSmurfs) {
+    public boolean enterShip() {
+        if (currentNumberOfSmurfs >= maximumNumberOfSmurfs) {
             return false;
         }
         currentNumberOfSmurfs++;
         return true;
     }
 
-    public void exitShip(){
+    public void exitShip() {
         currentNumberOfSmurfs--;
         try {
             currentLanding.getLandingMutex().lock();
