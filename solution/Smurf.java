@@ -62,7 +62,7 @@ public class Smurf extends Smurf_A implements Runnable {
 
                 waitForArrival();
 
-                currentLanding = landings.get(nextPosition);
+              //currentLanding = landings.get(nextPosition);
                 position = nextPosition;
 
                 try {

@@ -150,6 +150,12 @@ public class Ship extends Ship_A implements Runnable {
 
     public void exitShip(){
         currentNumberOfSmurfs--;
+        try {
+            currentLanding.getLandingMutex().lock();
+            currentLanding.signalWaitingSmurfs(direction);
+        } finally {
+            currentLanding.getLandingMutex().unlock();
+        }
     }
 
     // Getter and Setter
