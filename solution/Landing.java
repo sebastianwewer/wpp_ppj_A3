@@ -30,11 +30,11 @@ public class Landing {
         this.capacity = capacity;
     }
 
-
     public Condition getLandingFullCondition() {
     	return fullCondition;
     }
-    public boolean dock(Ship ship) {               
+
+    public boolean dock(Ship ship) {
             if(docked.size()>= capacity) {
             	return false;
             } 

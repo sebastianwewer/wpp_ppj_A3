@@ -12,7 +12,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Ship extends Ship_A implements Runnable {
 
     private final int id;
-    private Direction direction;
+    private final Direction direction;
     private final int maximumNumberOfSmurfs;
     private int currentNumberOfSmurfs;
 
@@ -151,9 +151,6 @@ public class Ship extends Ship_A implements Runnable {
     public void exitShip(){
         currentNumberOfSmurfs--;
     }
-
-
-
 
     // Getter and Setter
 

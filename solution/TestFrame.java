@@ -8,7 +8,7 @@ import java.util.concurrent.CountDownLatch;
 
 public class TestFrame extends TestAndEnvironment_A {
 
-    public static boolean DEBUG_STATE = false;
+    public static boolean DEBUG_STATE = true;
     public static int finishedSmurfs = 0;
 
     @Override
@@ -18,7 +18,7 @@ public class TestFrame extends TestAndEnvironment_A {
 
     @Override
     public Integer getWantedNumberOfSmurfs() {
-        return 100;
+        return 10000;
     }
 
     @Override
