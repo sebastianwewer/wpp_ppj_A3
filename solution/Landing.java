@@ -3,7 +3,6 @@ package solution;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -16,31 +15,36 @@ public class Landing {
     private final Condition travelCCWCondition;
     private final Condition travelCWCondition;
     private final Condition travelANYCondition;
-    private final Semaphore waitingQueue;
+    private final Condition fullCondition;
+    private final int capacity;
 
     public Landing(int capacity) {
 
         this.docked = new HashSet<>();
-        this.waitingQueue = new Semaphore(capacity, true);
 
         this.landingMutex = new ReentrantLock();
         this.travelCWCondition = landingMutex.newCondition();
         this.travelCCWCondition = landingMutex.newCondition();
         this.travelANYCondition = landingMutex.newCondition();
+        this.fullCondition = landingMutex.newCondition();
+        this.capacity = capacity;
     }
 
-    public void dock(Ship ship) {
-        try {
-            waitingQueue.acquire();
+
+    public Condition getLandingFullCondition() {
+    	return fullCondition;
+    }
+    public boolean dock(Ship ship) {               
+            if(docked.size()>= capacity) {
+            	return false;
+            } 
             docked.add(ship);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+            return true;
     }
 
     public void undock(Ship ship) {
+    	
         docked.remove(ship);
-        waitingQueue.release();
     }
 
     public ReentrantLock getLandingMutex() {

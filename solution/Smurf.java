@@ -71,7 +71,9 @@ public class Smurf extends Smurf_A implements Runnable {
 
                 takeTimeForDoingStuffAtCurrentPosition(position, ssi);
             }
+            System.err.println("Smurfs Done " + TestFrame.finishedSmurfs++);
             lastDeed();
+            
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

@@ -8,7 +8,8 @@ import java.util.concurrent.CountDownLatch;
 
 public class TestFrame extends TestAndEnvironment_A {
 
-    public static boolean DEBUG_STATE = true;
+    public static boolean DEBUG_STATE = false;
+    public static int finishedSmurfs = 0;
 
     @Override
     public String getAuthor() {
@@ -17,7 +18,7 @@ public class TestFrame extends TestAndEnvironment_A {
 
     @Override
     public Integer getWantedNumberOfSmurfs() {
-        return 100;
+        return 10000;
     }
 
     @Override
@@ -42,7 +43,7 @@ public class TestFrame extends TestAndEnvironment_A {
 
     @Override
     public void doTest(Integer requestedNumberOfSmurfs, Integer requestedNumberOfShips, Integer requestedNumberOfLandings, Integer requestedMaximumNumberOfSmurfsPerShip, Integer requestedMaximumNumberOfShipsPerLanding) {
-        DEBUG_STATE = true;
+        DEBUG_STATE = false;
         List<Thread> smurfs = new ArrayList<>();
         List<Thread> shipThreads = new ArrayList<>();
         List<Ship> ships = new ArrayList<>();

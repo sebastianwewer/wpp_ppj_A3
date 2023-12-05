@@ -60,16 +60,33 @@ public class Ship extends Ship_A implements Runnable {
     public void terminate() {
         running = false;
     }
+    
+    public void tryEnterLanding(Landing landing) {
+    	while(!landing.dock(this)) {
+    		try{
+    			landing.getLandingFullCondition().await();
+    		} catch (InterruptedException e) {
+    			throw new RuntimeException(e);
+    		}
+		}					
+    	
+    }
 
     @Override
     public void run() {
         while (running) {
             currentLanding = landings.get(position);
             setNextPosition();
-
-
-            currentLanding.dock(this);
+            
+            try {
+            currentLanding.getLandingMutex().lock();
+            tryEnterLanding(currentLanding);
             dockAt(position);
+            }finally {
+                currentLanding.getLandingMutex().unlock();
+            }
+            
+            
             signalPassengers();
 
             try {
@@ -88,7 +105,9 @@ public class Ship extends Ship_A implements Runnable {
             try {
                 currentLanding.getLandingMutex().lock();
                 currentLanding.undock(this);
+                currentLanding.getLandingFullCondition().signalAll();
                 castOff(position);
+                
             } finally {
                 currentLanding.getLandingMutex().unlock();
             }
