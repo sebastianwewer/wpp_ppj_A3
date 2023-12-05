@@ -9,7 +9,6 @@ import java.util.concurrent.CountDownLatch;
 public class TestFrame extends TestAndEnvironment_A {
 
     public static boolean DEBUG_STATE = true;
-    public static int finishedSmurfs = 0;
 
     @Override
     public String getAuthor() {
