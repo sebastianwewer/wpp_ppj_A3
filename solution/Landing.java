@@ -43,7 +43,6 @@ public class Landing {
     }
 
     public void undock(Ship ship) {
-    	
         docked.remove(ship);
     }
 

@@ -14,6 +14,7 @@ public class Ship extends Ship_A implements Runnable {
     private final int id;
     private Direction direction;
     private final int maximumNumberOfSmurfs;
+    private int currentNumberOfSmurfs;
 
     private final List<Landing> landings;
     private Landing currentLanding;
@@ -24,13 +25,12 @@ public class Ship extends Ship_A implements Runnable {
     // Synchronisierung
     private final Lock shipMutex;
     private final List<Condition> exitConditions;
-    private final Semaphore seats;
 
     public Ship(int id, Direction direction, int maximumNumberOfSmurfs, List<Landing> landings, int position) {
         this.id = id;
         this.direction = direction;
         this.maximumNumberOfSmurfs = maximumNumberOfSmurfs;
-        this.seats = new Semaphore(maximumNumberOfSmurfs);
+        this.currentNumberOfSmurfs = 0;
         this.landings = landings;
         this.currentLanding = landings.get(position);
         this.position = position;
@@ -140,6 +140,18 @@ public class Ship extends Ship_A implements Runnable {
         }
     }
 
+    public boolean enterShip(){
+        if(currentNumberOfSmurfs>=maximumNumberOfSmurfs) {
+            return false;
+        }
+        currentNumberOfSmurfs++;
+        return true;
+    }
+
+    public void exitShip(){
+        currentNumberOfSmurfs--;
+    }
+
 
 
 
@@ -168,9 +180,5 @@ public class Ship extends Ship_A implements Runnable {
 
     public Condition getExitCondition(int landing) {
         return exitConditions.get(landing);
-    }
-
-    public Semaphore getSeats() {
-        return seats;
     }
 }

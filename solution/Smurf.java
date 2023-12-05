@@ -65,13 +65,18 @@ public class Smurf extends Smurf_A implements Runnable {
                 currentLanding = landings.get(nextPosition);
                 position = nextPosition;
 
-                currentShip.getSeats().release();
+                try {
+                    currentShip.getShipMutex().lock();
+                    currentShip.exitShip();
+                } finally {
+                    currentShip.getShipMutex().unlock();
+                }
                 // TODO Schäfers-Methode aufrufen bevor wir selbst das Schiff verlassen haben?
                 leave(currentShip);
 
                 takeTimeForDoingStuffAtCurrentPosition(position, ssi);
             }
-            System.err.println("Smurfs Done " + TestFrame.finishedSmurfs++);
+            System.err.println("Smurfs Done " + (++TestFrame.finishedSmurfs));
             lastDeed();
             
         } catch (InterruptedException e) {
@@ -114,9 +119,7 @@ public class Smurf extends Smurf_A implements Runnable {
     private boolean tryEnterShip(Optional<Ship> optionalShip) {
         if (optionalShip.isPresent()) {
             Ship ship = optionalShip.get();
-
-            return ship.getSeats().tryAcquire();
-
+            return ship.enterShip();
         }
 
         return false;

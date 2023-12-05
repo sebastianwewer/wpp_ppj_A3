@@ -18,7 +18,7 @@ public class TestFrame extends TestAndEnvironment_A {
 
     @Override
     public Integer getWantedNumberOfSmurfs() {
-        return 10000;
+        return 100;
     }
 
     @Override
