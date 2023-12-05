@@ -19,7 +19,7 @@ public class Landing {
     private final Semaphore waitingQueue;
 
     public Landing(int capacity) {
-//        this.docked = new ArrayList<>();
+
         this.docked = new HashSet<>();
         this.waitingQueue = new Semaphore(capacity, true);
 
@@ -31,11 +31,7 @@ public class Landing {
 
     public void dock(Ship ship) {
         try {
-//            System.err.print("Schiff " + ship.identify() + " versucht an Landing zu docken. Schiffe im Dock: ");
-//            docked.forEach(ship1 -> System.err.print("Schiff " + ship1.identify() + " "));
-//            System.err.println();
             waitingQueue.acquire();
-//            System.err.println("Schiff " + ship.identify() + " hat an Landing gedockt. Tickets: " + waitingQueue.availablePermits());
             docked.add(ship);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
@@ -45,7 +41,6 @@ public class Landing {
     public void undock(Ship ship) {
         docked.remove(ship);
         waitingQueue.release();
-//        System.err.println("Schiff " + ship.identify() + " hat Landing verlassen. Tickets: " + waitingQueue.availablePermits());
     }
 
     public ReentrantLock getLandingMutex() {
@@ -58,9 +53,7 @@ public class Landing {
             return Optional.empty();
         }
         return switch (direction) {
-//            case ANY -> docked.stream().filter((ship -> !ship.isFull())).findAny();
             case ANY -> docked.stream().findAny();
-//            default -> docked.stream().filter((ship -> ship.getDirection().equals(direction) && !ship.isFull())).findAny();
             default -> docked.stream().filter((ship -> ship.getDirection().equals(direction))).findAny();
         };
     }

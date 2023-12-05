@@ -67,15 +67,6 @@ public class Ship extends Ship_A implements Runnable {
             currentLanding = landings.get(position);
             setNextPosition();
 
-//            try {
-//                currentLanding.getLandingMutex().lock();
-//                System.err.println("Schiff "+identify()+" hat Landing "+position+" gelocked! Docking");
-//                currentLanding.dock(this);
-//                dockAt(position);
-//            } finally {
-//                currentLanding.getLandingMutex().unlock();
-//                System.err.println("Schiff "+identify()+" hat Landing "+position+" unlocked! Docked successfully");
-//            }
 
             currentLanding.dock(this);
             dockAt(position);
@@ -83,11 +74,9 @@ public class Ship extends Ship_A implements Runnable {
 
             try {
                 currentLanding.getLandingMutex().lock();
-                //System.err.println("Schiff " + identify() + " hat Landing " + position + " gelocked! Signal Waiting");
                 currentLanding.signalWaitingSmurfs(direction);
             } finally {
                 currentLanding.getLandingMutex().unlock();
-                //System.err.println("Schiff " + identify() + " hat Landing " + position + " unlocked! Signal Waiting");
             }
 
             try {
@@ -98,12 +87,10 @@ public class Ship extends Ship_A implements Runnable {
 
             try {
                 currentLanding.getLandingMutex().lock();
-                //System.err.println("Schiff " + identify() + " hat Landing " + position + " gelocked! Undocking");
                 currentLanding.undock(this);
                 castOff(position);
             } finally {
                 currentLanding.getLandingMutex().unlock();
-                //System.err.println("Schiff " + identify() + " hat Landing " + position + " unlocked! Undocking");
             }
 
             try {
@@ -134,19 +121,7 @@ public class Ship extends Ship_A implements Runnable {
         }
     }
 
-//    public boolean isFull() {
-//        return currentNumberOfSmurfs == maximumNumberOfSmurfs;
-//    }
 
-//    public void enterShip() {
-//        currentNumberOfSmurfs++;
-//        //System.err.println("Smurf entered Ship " + identify() + ": " + currentNumberOfSmurfs + "/" + maximumNumberOfSmurfs);
-//    }
-
-//    public void exitShip() {
-//        currentNumberOfSmurfs--;
-//        //System.err.println("Smurf exited Ship " + identify() + ": " + currentNumberOfSmurfs + "/" + maximumNumberOfSmurfs);
-//    }
 
 
     // Getter and Setter
